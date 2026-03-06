@@ -25,6 +25,7 @@ import arc.net.DcReason;
 import arc.util.Log;
 import arc.util.Ratekeeper;
 
+import com.xpdustry.claj.common.net.stream.PreparedStream;
 import com.xpdustry.claj.common.net.stream.StreamSender;
 import com.xpdustry.claj.common.packets.Packet;
 import com.xpdustry.claj.common.util.AddressUtil;
@@ -37,7 +38,6 @@ public class ClajConnection {
   /** hex version of {@link #id}. */
   public final String sid;
   public final Ratekeeper packetRate;
-  public final Ratekeeper joinRate;
 
   public ClajConnection(Connection connection) {
     this(connection, AddressUtil.get(connection), AddressUtil.encodeId(connection));
@@ -50,7 +50,6 @@ public class ClajConnection {
     id = connection.getID();
     sid = encodedId;
     packetRate = new Ratekeeper();
-    joinRate = new Ratekeeper();
   }
 
   public boolean isConnected() {
@@ -73,6 +72,10 @@ public class ClajConnection {
 
   public void sendStream(Packet packet) {
     StreamSender.send(connection, packet);
+  }
+
+  public void sendStream(PreparedStream stream) {
+    stream.send(connection);
   }
 
   public void close() { close(DcReason.closed); }

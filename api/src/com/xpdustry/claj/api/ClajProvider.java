@@ -48,6 +48,8 @@ public interface ClajProvider {
    * This means that if the room host doesn't specify it,
    * any CLaJ implementation can join the room at the cost of possible deserialization errors. <br>
    * And if a client doesn't specify it, the CLaJ server is free to reject it or not.
+   * <p>
+   * Note that a room without a type will never be displayed in the room browser, even if it is public.
    */
   ClajType getType();
   /**
@@ -57,15 +59,15 @@ public interface ClajProvider {
   ClajVersion getVersion();
 
   /** Listener added to all virtual connections. Can be {@code null}. */
-  default NetListener getConnectionListener() { return null; }
+  default NetListener getConnectionListener(ClajProxy proxy) { return null; }
 
   /**
    * The actual room state, in an encoded form. <br>
-   * Will be requested by the server if needed. An empty buffer can be returned to not provide state.
+   * Will be requested by the server if needed. {@code null} can be returned to not provide state.
    * <p>
    * <strong>The buffer size must be less than {@code 2^16} ({@code 65536}). </strong>
    */
-  default ByteBuffer writeRoomState(ClajProxy proxy) { return ByteBuffer.allocate(0); }
+  default ByteBuffer writeRoomState(ClajProxy proxy) { return null; }
   /** Decode the room state received by the server. */
   default <T> T readRoomState(long roomId, ClajType type, ByteBuffer buff) {
     buff.position(buff.limit()); // fake reading
@@ -76,6 +78,7 @@ public interface ClajProvider {
    * Connect the client to the specified server. <br>
    * @param success can be {@code null} and must be called when connected successfully.
    * @param joinPacket must be send in the client connection after connected successfully.
+   *                   The server has a queue in case this condition is not fully met.
    */
   void connectClient(String host, int port, Runnable success, ByteBuffer joinPacket);
 
@@ -88,7 +91,7 @@ public interface ClajProvider {
   Serializer getPacketWrapperSerializer();
 
   // Client specific handling
-  default void showTextMessage(String text) {}
-  default void showMessage(MessageType message) {}
-  default void showPopup(String text) {}
+  default void showTextMessage(ClajProxy proxy, String text) {}
+  default void showMessage(ClajProxy proxy, MessageType message) {}
+  default void showPopup(ClajProxy proxy, String text) {}
 }

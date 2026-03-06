@@ -202,6 +202,11 @@ public class Plugins implements ApplicationListener {
     eachClass(Plugin::init);
   }
 
+  @Override
+  public void dispose() {
+    eachClass(Plugin::dispose);
+  }
+
   /** Loads all plugins from the folder, but does not call any methods on them.*/
   public void load() {
     Seq<Fi> candidates = new Seq<>();
@@ -451,13 +456,11 @@ public class Plugins implements ApplicationListener {
       //detect plugins that incorrectly package CLaJ in the jar
       //Note: This works because JarLoader uses a child-first loading strategy.
       if (Class.forName(Plugin.class.getName(), false, loader) != Plugin.class)
-        throw new PluginLoadException(
-          """
-              This plugin has loaded CLaJ dependencies from its own class loader. \
-              You are incorrectly including CLaJ dependencies in the plugin JAR! \
-              Make sure CLaJ is declared as `compileOnly` in your `build.gradle`, \
-              and the JAR is created with `runtimeClasspath`."""
-        );
+        throw new PluginLoadException("""
+          This plugin has loaded CLaJ dependencies from its own class loader. \
+          You are incorrectly including CLaJ dependencies in the plugin JAR! \
+          Make sure CLaJ is declared as `compileOnly` in your `build.gradle`, \
+          and the JAR is created with `runtimeClasspath`.""");
 
       metas.put(main, meta);
       loaders.put(loader, main);
